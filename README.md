@@ -2,6 +2,8 @@
 
 Client-side viewer for Meta's Data Logs from the "Download Your Information" tool.
 
+[Live Demo](https://data-parser.niclas.xyz)
+
 ![Log Viewer Demo](https://raw.githubusercontent.com/niclas3332/meta_dataexport_parser/master/demo.png)
 
 ## 🔥 Features
