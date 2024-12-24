@@ -1,76 +1,38 @@
-# Meta Data Log Viewer
+# Meta Data Logs Viewer
 
-A React site for viewing and analyzing Meta data export files.
+Client-side viewer for Meta's Data Logs from the "Download Your Information" tool.
 
-![Example](https://raw.githubusercontent.com/niclas3332/meta_dataexport_parser/master/demo.png)
-
+![Log Viewer Demo](https://raw.githubusercontent.com/niclas3332/meta_dataexport_parser/master/demo.png)
 
 ## Features
 
-- Display Meta data logs in a table format
-- Sort data by any column
-- Group data by fields
-- Handle variable JSON structures
-- Automatic timestamp conversion
-- No line breaks in table cells
-- Responsive layout
-- Dark Mode
+- 📁 Local processing - no server uploads
+- 📊 Sort, filter and group data
+- 🔍 Multi-column search
+- 📑 Pagination for large datasets
+- 📱 Responsive design
 
-## Setup
+## Usage
 
-1. Place the content folder from your meta data export in the public folder
-2. Ensure files are named `page_1.json`, `page_2.json`, etc.
-3. Run npm install && npm run dev
-4. Go to http://localhost:5173/ and view the logs
+1. Download Data Logs from [Meta's Download Your Information](https://accountscenter.facebook.com/info_and_permissions/dyi/?entry_point=notification)
+2. Upload either:
+    - Unzipped `download_data_logs` folder
+    - ZIP file directly
 
-## JSON Structure
+## Development
 
-The component expects JSON files in this format:
-
-```json
-{
-  "name": "Category Name",
-  "description": "Category Description",
-  "pages": [
-    [
-      {
-        "timestamp": 1734336000,
-        "label_values": [
-          {
-            "label": "Field Name",
-            "value": "Field Value",
-            "description": "Optional Field Description"
-          }
-        ]
-      }
-    ]
-  ]
-}
+```bash
+git clone https://github.com/niclas3332/meta_dataexport_parser.git
+cd meta_dataexport_parser
+npm install
+npm run dev
 ```
 
-## Key Components
+## Stack
 
-### Category Loading
-- Automatically scans folders 0-10
-- Loads first page (`page_1.json`) to get category information
-- Displays category names in sidebar
+- React + Vite
+- Tailwind CSS
+- shadcn/ui
+- JSZip
+- Lodash
 
-### Data Handling
-- Dynamic column detection from all entries
-- Handles missing fields gracefully
-- Converts UNIX timestamps to readable dates
-- Preserves data consistency across pages
-
-### User Interface
-- Left sidebar: Category selection
-- Main area: Data table with sorting and grouping
-- Table headers: Click to sort
-- Grouping dropdown: Select field to group by
-
-## Data Processing
-
-1. Categories loaded on component mount
-2. Page loading triggered by category selection
-3. Headers generated from all available fields
-4. Data normalized into flat structure
-5. Sorting/grouping applied based on user selection
