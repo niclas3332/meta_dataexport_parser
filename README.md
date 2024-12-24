@@ -14,9 +14,8 @@ A React component for viewing and analyzing Meta data export files.
 
 ## Setup
 
-1. Place your Meta data export files in the `public/meta` folder
-2. Create numbered subfolders (0-10) for each log category
-3. Ensure files are named `page_1.json`, `page_2.json`, etc.
+1. Place the content folder from your meta data export in the public folder
+2. Ensure files are named `page_1.json`, `page_2.json`, etc.
 
 ## JSON Structure
 

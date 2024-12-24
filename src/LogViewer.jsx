@@ -53,7 +53,7 @@ const LogViewer = () => {
         const newCategories = [];
         for (let i = 0; i <= 10; i++) {
             try {
-                const response = await fetch(`/meta/${i}/page_1.json`);
+                const response = await fetch(`/content/${i}/page_1.json`);
                 if (!response.ok) continue;
                 const data = await response.json();
                 newCategories.push({
@@ -77,7 +77,7 @@ const LogViewer = () => {
         try {
             while (true) {
                 try {
-                    const response = await fetch(`/meta/${categoryId}/page_${pageNum}.json`);
+                    const response = await fetch(`/content/${categoryId}/page_${pageNum}.json`);
                     if (!response.ok) break;
                     const data = await response.json();
                     allPages.push(...data.pages);
