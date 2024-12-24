@@ -230,9 +230,19 @@ const LogViewer = () => {
                         <Card className="shadow-sm">
                             <CardHeader>
                                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
-                                    <CardTitle className="text-xl text-primary">
-                                        {selectedCategory.name}
-                                    </CardTitle>
+                                    <div>
+                                        <CardTitle className="text-xl text-primary">
+                                            {selectedCategory.name}
+                                        </CardTitle>
+                                        <a
+                                            href="https://github.com/niclas3332/meta_dataexport_parser"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                                        >
+                                            View this project on GitHub
+                                        </a>
+                                    </div>
                                     <Select value={groupBy} onValueChange={setGroupBy}>
                                         <SelectTrigger className="w-full md:w-[240px]">
                                             <SelectValue placeholder="Group by field..." />

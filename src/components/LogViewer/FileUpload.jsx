@@ -105,7 +105,7 @@ const FileUpload = ({ onFilesProcessed }) => {
         <div>
             <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer ${
+                className={`border-2 border-dashed rounded-lg p-8 text-center ${
                     isDragActive ? 'border-primary bg-primary/10' : 'border-muted'
                 }`}
             >
@@ -116,9 +116,22 @@ const FileUpload = ({ onFilesProcessed }) => {
                         : 'Drag and drop the download_data_logs folder or ZIP file here, or click to select'}
                 </p>
             </div>
-            <p className="text-sm text-muted-foreground mt-4 text-center">
-                Your files are processed entirely in your browser - nothing will be uploaded to any server.
-            </p>
+            <div className="mt-4 text-center space-y-2">
+                <p className="text-sm text-muted-foreground">
+                    Your files are processed entirely in your browser - nothing will be uploaded to any server.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                    You can download your data logs from the{' '}
+                    <a
+                        href="https://accountscenter.facebook.com/info_and_permissions/dyi"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                    >
+                        Meta Accounts Center
+                    </a>
+                </p>
+            </div>
         </div>
     );
 };
