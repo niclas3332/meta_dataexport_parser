@@ -1,29 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import CategoryList from './CategoryList';
 import FilterBar from './FilterBar';
-import FileUpload from './FileUpload';
 import LogTable from './LogTable';
+import GroupedContent from './GroupedContent';
+import useSorting from '@/hooks/useSorting';
+import useFiltering from '@/hooks/useFiltering';
+import usePagination from '@/hooks/usePagination';
+import FileUpload from '@/components/LogViewer/FileUpload.jsx';
+import { Badge } from '@/components/ui/badge';
 import _ from 'lodash';
-
-const ITEMS_PER_PAGE = 50;
 
 const LogViewer = () => {
     const [categories, setCategories] = useState([]);
     const [categorizedData, setCategorizedData] = useState({});
     const [selectedCategory, setSelectedCategory] = useState(null);
-    const [pages, setPages] = useState([]);
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-    const [groupBy, setGroupBy] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [filters, setFilters] = useState([{ column: '', value: '' }]);
     const [expandedGroups, setExpandedGroups] = useState(new Set());
-    const [currentPage, setCurrentPage] = useState(1);
+    const [groupBy, setGroupBy] = useState(null);
+    const { sortConfig, handleSort } = useSorting();
+    const { filters, handleFilterChange, addFilter, removeFilter, filterData } = useFiltering();
+    const { currentPage, setCurrentPage, getPaginatedData } = usePagination();
 
     useEffect(() => {
         setCurrentPage(1);
@@ -38,7 +37,7 @@ const LogViewer = () => {
         setCategories(newCategories);
         setCategorizedData(data);
         setSelectedCategory(null);
-        setPages([]);
+        setLoading(false);
     };
 
     const loadPages = async (categoryId) => {
@@ -47,178 +46,62 @@ const LogViewer = () => {
             await new Promise(resolve => setTimeout(resolve, 0)); // Async break
             const category = categories.find(c => c.id === categoryId);
             if (category) {
-                const pages = categorizedData[categoryId]?.pages || [];
-                setPages(pages);
                 setSelectedCategory(category);
-                resetFiltersAndSorting();
+                setGroupBy(null);
+                setExpandedGroups(new Set());
+                setCurrentPage(1);
             }
         } finally {
             setLoading(false);
         }
     };
 
-    const resetFiltersAndSorting = () => {
-        setGroupBy(null);
-        setSortConfig({ key: null, direction: 'asc' });
-        setFilters([{ column: '', value: '' }]);
-        setExpandedGroups(new Set());
-        setCurrentPage(1);
-    };
-
     const getTableHeaders = () => {
-        if (pages.length === 0) return [];
-        const labelSet = new Set();
-        labelSet.add('timestamp');
-
-        pages.forEach(page =>
+        if (!categorizedData[selectedCategory?.id]?.pages) return [];
+        const labelSet = new Set(['timestamp']);
+        categorizedData[selectedCategory.id].pages.forEach(page =>
             page.forEach(entry =>
-                entry.label_values.forEach(item =>
-                    labelSet.add(item.label)
-                )
+                entry.label_values.forEach(item => labelSet.add(item.label))
             )
         );
-
-        return Array.from(labelSet).map(label => ({
-            label: label === 'timestamp' ? 'Timestamp' : label,
-            key: label
-        }));
-    };
-
-    const formatDate = (timestamp) => {
-        return new Date(timestamp * 1000).toLocaleString();
-    };
-
-    const handleSort = (key) => {
-        setSortConfig({
-            key,
-            direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
-        });
-    };
-
-    const handleFilterChange = (index, field, value) => {
-        const newFilters = [...filters];
-        newFilters[index] = { ...newFilters[index], [field]: value };
-        setFilters(newFilters);
-    };
-
-    const addFilter = () => {
-        setFilters([...filters, { column: '', value: '' }]);
-    };
-
-    const removeFilter = (index) => {
-        const newFilters = filters.filter((_, i) => i !== index);
-        if (newFilters.length === 0) {
-            setFilters([{ column: '', value: '' }]);
-        } else {
-            setFilters(newFilters);
-        }
-    };
-
-    const filterData = (data) => {
-        return data.filter(row =>
-            filters.every(filter => {
-                if (!filter.column || !filter.value) return true;
-                const value = row[filter.column];
-                return value && String(value).toLowerCase().includes(filter.value.toLowerCase());
-            })
-        );
+        return Array.from(labelSet).map(label => ({ label: label === 'timestamp' ? 'Timestamp' : label, key: label }));
     };
 
     const getSortedAndGroupedData = () => {
-        let data = pages.flatMap((page, pageIndex) =>
-            page.map((entry) => {
-                const row = { timestamp: entry.timestamp };
-                entry.label_values.forEach(item => {
-                    row[item.label] = item.value;
-                });
-                return row;
-            })
-        );
+        if (!selectedCategory) return { all: [] };
+        const pages = categorizedData[selectedCategory.id]?.pages || [];
+        let data = pages.flatMap(page => page.map(entry => {
+            const row = { timestamp: entry.timestamp };
+            entry.label_values.forEach(item => row[item.label] = item.value);
+            return row;
+        }));
 
         data = filterData(data);
 
-        const grouped = groupBy
-            ? groupBy === 'timestamp'
-                ? _.groupBy(data, row => formatDate(row.timestamp))
-                : _.groupBy(data, groupBy)
-            : { 'all': data };
+        if (groupBy) {
+            const grouped = groupBy === 'timestamp'
+                ? _.groupBy(data, row => new Date(row.timestamp * 1000).toLocaleString())
+                : _.groupBy(data, groupBy);
+
+            // Sort only within groups
+            const sortedGrouped = _.mapValues(grouped, group => {
+                if (sortConfig.key) {
+                    return _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
+                }
+                return group;
+            });
+
+            return sortedGrouped;
+        }
 
         if (sortConfig.key) {
-            console.log('Sorting within groups by:', sortConfig.key);  // Debug log
-            _.forOwn(grouped, (group, key) => {
-                grouped[key] = _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
-            });
+            data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
         }
 
-        console.log('Grouped Data:', grouped);  // Debug log
-        return grouped;
-    };
-
-    const toggleGroup = (groupName) => {
-        const newExpanded = new Set(expandedGroups);
-        if (newExpanded.has(groupName)) {
-            newExpanded.delete(groupName);
-        } else {
-            newExpanded.add(groupName);
-        }
-        setExpandedGroups(newExpanded);
-    };
-
-    const getPaginatedData = (data) => {
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        return data.slice(startIndex, endIndex);
+        return { all: data };
     };
 
     const headers = getTableHeaders();
-
-    const renderGroupedContent = (groupedData) => {
-        console.log('Rendering Grouped Data:', groupedData);  // Debug log
-        return Object.entries(groupedData).map(([group, groupData]) => (
-            <Collapsible
-                key={group}
-                className="space-y-2"
-                open={expandedGroups.has(group)}
-                onOpenChange={() => toggleGroup(group)}
-            >
-                <div className="border rounded-lg shadow-sm">
-                    <CollapsibleTrigger className="w-full">
-                        <div className="flex items-center justify-between p-4 hover:bg-muted">
-                            <div className="flex items-center gap-2">
-                                {expandedGroups.has(group) ?
-                                    <ChevronDown className="h-4 w-4" /> :
-                                    <ChevronRight className="h-4 w-4" />
-                                }
-                                <span className="font-semibold">{group}</span>
-                                <Badge variant="secondary" className="ml-2">
-                                    {groupData.length} entries
-                                </Badge>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                Latest: {formatDate(groupData[0].timestamp)}
-                            </div>
-                        </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <div className="border-t">
-                            <div className="overflow-x-auto">
-                                <LogTable
-                                    headers={headers}
-                                    data={getPaginatedData(groupData)}
-                                    sortConfig={sortConfig}
-                                    onSort={handleSort}
-                                    formatDate={formatDate}
-                                    currentPage={currentPage}
-                                    setCurrentPage={setCurrentPage}
-                                    itemsPerPage={ITEMS_PER_PAGE}
-                                />
-                            </div>
-                        </div>
-                    </CollapsibleContent>
-                </div>
-            </Collapsible>
-        ));
-    };
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
@@ -290,24 +173,41 @@ const LogViewer = () => {
                                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
-                                        {groupBy ? (
-                                            renderGroupedContent(getSortedAndGroupedData())
-                                        ) : (
-                                            <div className="rounded-lg border shadow-sm overflow-hidden">
-                                                <LogTable
-                                                    headers={headers}
-                                                    data={getSortedAndGroupedData().all}
-                                                    sortConfig={sortConfig}
-                                                    onSort={handleSort}
-                                                    formatDate={formatDate}
-                                                    currentPage={currentPage}
-                                                    setCurrentPage={setCurrentPage}
-                                                    itemsPerPage={ITEMS_PER_PAGE}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
+                                    groupBy ? (
+                                        <GroupedContent
+                                            headers={headers}
+                                            groupedData={getSortedAndGroupedData()}
+                                            sortConfig={sortConfig}
+                                            handleSort={handleSort}
+                                            formatDate={timestamp => new Date(timestamp * 1000).toLocaleString()}
+                                            currentPage={currentPage}
+                                            setCurrentPage={setCurrentPage}
+                                            itemsPerPage={50}
+                                            expandedGroups={expandedGroups}
+                                            toggleGroup={groupName => {
+                                                const newExpanded = new Set(expandedGroups);
+                                                if (newExpanded.has(groupName)) {
+                                                    newExpanded.delete(groupName);
+                                                } else {
+                                                    newExpanded.add(groupName);
+                                                }
+                                                setExpandedGroups(newExpanded);
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="rounded-lg border shadow-sm overflow-hidden">
+                                            <LogTable
+                                                headers={headers}
+                                                data={getSortedAndGroupedData().all}
+                                                sortConfig={sortConfig}
+                                                onSort={handleSort}
+                                                formatDate={timestamp => new Date(timestamp * 1000).toLocaleString()}
+                                                currentPage={currentPage}
+                                                setCurrentPage={setCurrentPage}
+                                                itemsPerPage={50}
+                                            />
+                                        </div>
+                                    )
                                 )}
                             </CardContent>
                         </Card>
