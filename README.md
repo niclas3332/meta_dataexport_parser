@@ -16,6 +16,8 @@ A React component for viewing and analyzing Meta data export files.
 
 1. Place the content folder from your meta data export in the public folder
 2. Ensure files are named `page_1.json`, `page_2.json`, etc.
+3. Run npm install && npm run dev
+4. Go to http://localhost:5173/ and view the logs
 
 ## JSON Structure
 
