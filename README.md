@@ -1,6 +1,6 @@
 # Meta Data Log Viewer
 
-A React component for viewing and analyzing Meta data export files.
+A React site for viewing and analyzing Meta data export files.
 
 ![Example](https://raw.githubusercontent.com/niclas3332/meta_dataexport_parser/master/demo.png)
 
@@ -14,6 +14,7 @@ A React component for viewing and analyzing Meta data export files.
 - Automatic timestamp conversion
 - No line breaks in table cells
 - Responsive layout
+- Dark Mode
 
 ## Setup
 
