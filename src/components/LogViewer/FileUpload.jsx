@@ -105,7 +105,7 @@ const FileUpload = ({ onFilesProcessed }) => {
         <div>
             <div
                 {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center ${
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer ${
                     isDragActive ? 'border-primary bg-primary/10' : 'border-muted'
                 }`}
             >
