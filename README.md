@@ -2,6 +2,9 @@
 
 A React component for viewing and analyzing Meta data export files.
 
+![Example](https://raw.githubusercontent.com/niclas3332/meta_dataexport_parser/master/demo.png)
+
+
 ## Features
 
 - Display Meta data logs in a table format
