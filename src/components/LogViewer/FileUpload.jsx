@@ -1,12 +1,16 @@
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import JSZip from 'jszip';
+import { useToast } from '@/hooks/use-toast';
 
 const FileUpload = ({ onFilesProcessed }) => {
+    const { toast } = useToast();
+
     const processZip = async (zipFile) => {
         try {
             const zip = await JSZip.loadAsync(zipFile);
             const categorizedData = {};
+            let foundValidFiles = false;
 
             await Promise.all(
                 Object.entries(zip.files).map(async ([path, zipEntry]) => {
@@ -15,32 +19,42 @@ const FileUpload = ({ onFilesProcessed }) => {
                     const match = path.match(/download_data_logs\/content\/(\d+)\/page_(\d+)\.json$/);
                     if (!match) return;
 
+                    foundValidFiles = true;
                     const categoryId = parseInt(match[1]);
-                    const content = await zipEntry.async('text');
-                    const data = JSON.parse(content);
 
-                    if (!categorizedData[categoryId]) {
-                        categorizedData[categoryId] = {
-                            id: categoryId,
-                            name: data.name,
-                            description: data.description,
-                            pages: []
-                        };
+                    try {
+                        const content = await zipEntry.async('text');
+                        const data = JSON.parse(content);
+
+                        if (!categorizedData[categoryId]) {
+                            categorizedData[categoryId] = {
+                                id: categoryId,
+                                name: data.name,
+                                description: data.description,
+                                pages: []
+                            };
+                        }
+                        categorizedData[categoryId].pages.push(...data.pages);
+                    } catch (err) {
+                        throw new Error(`Failed to process file ${path}: ${err.message}`);
                     }
-                    categorizedData[categoryId].pages.push(...data.pages);
                 })
             );
 
+            if (!foundValidFiles) {
+                throw new Error('No valid JSON files found in the expected directory structure');
+            }
+
             return categorizedData;
         } catch (error) {
-            console.error('Error processing ZIP:', error);
-            throw error;
+            throw new Error(`ZIP processing failed: ${error.message}`);
         }
     };
 
     const processDirectory = async (files) => {
         try {
             const categorizedData = {};
+            let foundValidFiles = false;
 
             await Promise.all(
                 files.map(async (file) => {
@@ -48,31 +62,47 @@ const FileUpload = ({ onFilesProcessed }) => {
                     const match = path.match(/content\/(\d+)\/page_(\d+)\.json$/);
                     if (!match) return;
 
+                    foundValidFiles = true;
                     const categoryId = parseInt(match[1]);
-                    const content = await file.text();
-                    const data = JSON.parse(content);
 
-                    if (!categorizedData[categoryId]) {
-                        categorizedData[categoryId] = {
-                            id: categoryId,
-                            name: data.name,
-                            description: data.description,
-                            pages: []
-                        };
+                    try {
+                        const content = await file.text();
+                        const data = JSON.parse(content);
+
+                        if (!categorizedData[categoryId]) {
+                            categorizedData[categoryId] = {
+                                id: categoryId,
+                                name: data.name,
+                                description: data.description,
+                                pages: []
+                            };
+                        }
+                        categorizedData[categoryId].pages.push(...data.pages);
+                    } catch (err) {
+                        throw new Error(`Failed to process file ${path}: ${err.message}`);
                     }
-                    categorizedData[categoryId].pages.push(...data.pages);
                 })
             );
 
+            if (!foundValidFiles) {
+                throw new Error('No valid JSON files found in the selected files');
+            }
+
             return categorizedData;
         } catch (error) {
-            console.error('Error processing directory:', error);
-            throw error;
+            throw new Error(`Directory processing failed: ${error.message}`);
         }
     };
 
     const onDrop = useCallback(async (acceptedFiles) => {
-        if (acceptedFiles.length === 0) return;
+        if (acceptedFiles.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No files were selected"
+            });
+            return;
+        }
 
         try {
             const firstFile = acceptedFiles[0];
@@ -86,13 +116,25 @@ const FileUpload = ({ onFilesProcessed }) => {
 
             if (Object.keys(data).length > 0) {
                 onFilesProcessed(data);
+                toast({
+                    title: "Success",
+                    description: "Files processed successfully"
+                });
             } else {
-                console.error('No valid data found in files');
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "No valid data found in the selected files"
+                });
             }
         } catch (error) {
-            console.error('Error processing files:', error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.message
+            });
         }
-    }, [onFilesProcessed]);
+    }, [onFilesProcessed, toast]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,

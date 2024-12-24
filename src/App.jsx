@@ -1,6 +1,7 @@
 import {ThemeProvider} from "@/components/theme-provider"
 import ThemeToggle from "@/components/theme-toggle.jsx";
 import LogViewer from "@/components/LogViewer/LogViewer.jsx";
+import {Toaster} from "@/components/ui/toaster";
 
 function App() {
     return (
@@ -11,6 +12,7 @@ function App() {
                 </div>
                 <LogViewer/>
             </div>
+            <Toaster />
         </ThemeProvider>
     )
 }
