@@ -214,13 +214,15 @@ const LogViewer = () => {
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
-            <div className="w-full lg:w-1/4">
-                <CategoryList
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onCategorySelect={loadPages}
-                />
-            </div>
+            {categories.length > 0 && (
+                <div className="w-full lg:w-1/4">
+                    <CategoryList
+                        categories={categories}
+                        selectedCategory={selectedCategory}
+                        onCategorySelect={loadPages}
+                    />
+                </div>
+            )}
 
             <div className="w-full lg:w-3/4 space-y-6">
                 {selectedCategory ? (
