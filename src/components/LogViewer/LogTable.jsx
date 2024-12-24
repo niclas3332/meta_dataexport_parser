@@ -1,6 +1,6 @@
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {ArrowUpDown, ArrowUp, ArrowDown} from 'lucide-react';
-import {Button} from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const LogTable = ({
                       headers,
@@ -13,10 +13,10 @@ const LogTable = ({
                       itemsPerPage = 50
                   }) => {
     const getSortIcon = (headerKey) => {
-        if (sortConfig.key !== headerKey) return <ArrowUpDown className="h-4 w-4 text-gray-500"/>;
+        if (sortConfig.key !== headerKey) return <ArrowUpDown className="h-4 w-4 text-gray-500" />;
         return sortConfig.direction === 'asc'
-            ? <ArrowUp className="h-4 w-4 text-primary"/>
-            : <ArrowDown className="h-4 w-4 text-primary"/>;
+            ? <ArrowUp className="h-4 w-4 text-primary" />
+            : <ArrowDown className="h-4 w-4 text-primary" />;
     };
 
     const pageCount = Math.ceil(data.length / itemsPerPage);
@@ -58,7 +58,7 @@ const LogTable = ({
                         Previous
                     </Button>
                     {startPage > 1 && <span className="px-2">...</span>}
-                    {Array.from({length: endPage - startPage + 1}, (_, i) => startPage + i).map(page => (
+                    {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(page => (
                         <Button
                             key={page}
                             variant={currentPage === page ? "default" : "outline"}

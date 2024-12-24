@@ -50,15 +50,19 @@ const LogViewer = () => {
                 const pages = categorizedData[categoryId]?.pages || [];
                 setPages(pages);
                 setSelectedCategory(category);
-                setGroupBy(null);
-                setSortConfig({ key: null, direction: 'asc' });
-                setFilters([{ column: '', value: '' }]);
-                setExpandedGroups(new Set());
-                setCurrentPage(1);
+                resetFiltersAndSorting();
             }
         } finally {
             setLoading(false);
         }
+    };
+
+    const resetFiltersAndSorting = () => {
+        setGroupBy(null);
+        setSortConfig({ key: null, direction: 'asc' });
+        setFilters([{ column: '', value: '' }]);
+        setExpandedGroups(new Set());
+        setCurrentPage(1);
     };
 
     const getTableHeaders = () => {
@@ -133,21 +137,21 @@ const LogViewer = () => {
 
         data = filterData(data);
 
-        if (sortConfig.key) {
-            data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
-        }
-
-        if (groupBy) {
-            const grouped = groupBy === 'timestamp'
+        const grouped = groupBy
+            ? groupBy === 'timestamp'
                 ? _.groupBy(data, row => formatDate(row.timestamp))
-                : _.groupBy(data, groupBy);
+                : _.groupBy(data, groupBy)
+            : { 'all': data };
 
-            return _.mapValues(grouped, group =>
-                _.orderBy(group, ['timestamp'], ['desc'])
-            );
+        if (sortConfig.key) {
+            console.log('Sorting within groups by:', sortConfig.key);  // Debug log
+            _.forOwn(grouped, (group, key) => {
+                grouped[key] = _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
+            });
         }
 
-        return { 'all': data };
+        console.log('Grouped Data:', grouped);  // Debug log
+        return grouped;
     };
 
     const toggleGroup = (groupName) => {
@@ -168,8 +172,9 @@ const LogViewer = () => {
 
     const headers = getTableHeaders();
 
-    const renderGroupedContent = (groupedData) => (
-        Object.entries(groupedData).map(([group, groupData]) => (
+    const renderGroupedContent = (groupedData) => {
+        console.log('Rendering Grouped Data:', groupedData);  // Debug log
+        return Object.entries(groupedData).map(([group, groupData]) => (
             <Collapsible
                 key={group}
                 className="space-y-2"
@@ -203,14 +208,17 @@ const LogViewer = () => {
                                     sortConfig={sortConfig}
                                     onSort={handleSort}
                                     formatDate={formatDate}
+                                    currentPage={currentPage}
+                                    setCurrentPage={setCurrentPage}
+                                    itemsPerPage={ITEMS_PER_PAGE}
                                 />
                             </div>
                         </div>
                     </CollapsibleContent>
                 </div>
             </Collapsible>
-        ))
-    );
+        ));
+    };
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
@@ -284,50 +292,7 @@ const LogViewer = () => {
                                 ) : (
                                     <div className="space-y-4">
                                         {groupBy ? (
-                                            Object.entries(getSortedAndGroupedData()).map(([group, groupData]) => (
-                                                <Collapsible
-                                                    key={group}
-                                                    className="space-y-2"
-                                                    open={expandedGroups.has(group)}
-                                                    onOpenChange={() => toggleGroup(group)}
-                                                >
-                                                    <div className="border rounded-lg shadow-sm">
-                                                        <CollapsibleTrigger className="w-full">
-                                                            <div className="flex items-center justify-between p-4 hover:bg-muted">
-                                                                <div className="flex items-center gap-2">
-                                                                    {expandedGroups.has(group) ?
-                                                                        <ChevronDown className="h-4 w-4"/> :
-                                                                        <ChevronRight className="h-4 w-4"/>
-                                                                    }
-                                                                    <span className="font-semibold">{group}</span>
-                                                                    <Badge variant="secondary" className="ml-2">
-                                                                        {groupData.length} entries
-                                                                    </Badge>
-                                                                </div>
-                                                                <div className="flex items-center gap-4">
-                                                                    Latest: {formatDate(groupData[0].timestamp)}
-                                                                </div>
-                                                            </div>
-                                                        </CollapsibleTrigger>
-                                                        <CollapsibleContent>
-                                                            <div className="border-t">
-                                                                <div className="overflow-x-auto">
-                                                                    <LogTable
-                                                                        headers={headers}
-                                                                        data={groupData}
-                                                                        sortConfig={sortConfig}
-                                                                        onSort={handleSort}
-                                                                        formatDate={formatDate}
-                                                                        currentPage={currentPage}
-                                                                        setCurrentPage={setCurrentPage}
-                                                                        itemsPerPage={ITEMS_PER_PAGE}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </CollapsibleContent>
-                                                    </div>
-                                                </Collapsible>
-                                            ))
+                                            renderGroupedContent(getSortedAndGroupedData())
                                         ) : (
                                             <div className="rounded-lg border shadow-sm overflow-hidden">
                                                 <LogTable
