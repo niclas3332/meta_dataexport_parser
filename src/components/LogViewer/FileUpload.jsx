@@ -131,6 +131,17 @@ const FileUpload = ({ onFilesProcessed }) => {
                         Meta Accounts Center
                     </a>
                 </p>
+                <p className="text-sm text-muted-foreground">
+                    View this project on{' '}
+                    <a
+                        href="https://github.com/niclas3332/meta_dataexport_parser"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                    >
+                        GitHub
+                    </a>
+                </p>
             </div>
         </div>
     );
