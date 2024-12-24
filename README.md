@@ -4,20 +4,21 @@ Client-side viewer for Meta's Data Logs from the "Download Your Information" too
 
 ![Log Viewer Demo](https://raw.githubusercontent.com/niclas3332/meta_dataexport_parser/master/demo.png)
 
-## Features
+## 🔥 Features
 
 - 📁 Local processing - no server uploads
 - 📊 Sort, filter and group data
 - 🔍 Multi-column search
 - 📑 Pagination for large datasets
 - 📱 Responsive design
+- 🌓 Light/Dark mode
 
 ## Usage
 
 1. Download Data Logs from [Meta's Download Your Information](https://accountscenter.facebook.com/info_and_permissions/dyi/?entry_point=notification)
 2. Upload either:
-    - Unzipped `download_data_logs` folder
-    - ZIP file directly
+   - Unzipped `download_data_logs` folder
+   - ZIP file directly
 
 ## Development
 
@@ -35,4 +36,3 @@ npm run dev
 - shadcn/ui
 - JSZip
 - Lodash
-
