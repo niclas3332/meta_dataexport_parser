@@ -138,7 +138,10 @@ const LogViewer = () => {
         }
 
         if (groupBy) {
-            const grouped = _.groupBy(data, groupBy);
+            const grouped = groupBy === 'timestamp'
+                ? _.groupBy(data, row => formatDate(row.timestamp))
+                : _.groupBy(data, groupBy);
+
             return _.mapValues(grouped, group =>
                 _.orderBy(group, ['timestamp'], ['desc'])
             );
@@ -211,13 +214,13 @@ const LogViewer = () => {
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
-            {categories.length > 0 && <div className="w-full lg:w-1/4">
+            <div className="w-full lg:w-1/4">
                 <CategoryList
                     categories={categories}
                     selectedCategory={selectedCategory}
                     onCategorySelect={loadPages}
                 />
-            </div>}
+            </div>
 
             <div className="w-full lg:w-3/4 space-y-6">
                 {selectedCategory ? (
@@ -269,7 +272,50 @@ const LogViewer = () => {
                                 ) : (
                                     <div className="space-y-4">
                                         {groupBy ? (
-                                            renderGroupedContent(getSortedAndGroupedData())
+                                            Object.entries(getSortedAndGroupedData()).map(([group, groupData]) => (
+                                                <Collapsible
+                                                    key={group}
+                                                    className="space-y-2"
+                                                    open={expandedGroups.has(group)}
+                                                    onOpenChange={() => toggleGroup(group)}
+                                                >
+                                                    <div className="border rounded-lg shadow-sm">
+                                                        <CollapsibleTrigger className="w-full">
+                                                            <div className="flex items-center justify-between p-4 hover:bg-muted">
+                                                                <div className="flex items-center gap-2">
+                                                                    {expandedGroups.has(group) ?
+                                                                        <ChevronDown className="h-4 w-4"/> :
+                                                                        <ChevronRight className="h-4 w-4"/>
+                                                                    }
+                                                                    <span className="font-semibold">{group}</span>
+                                                                    <Badge variant="secondary" className="ml-2">
+                                                                        {groupData.length} entries
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="flex items-center gap-4">
+                                                                    Latest: {formatDate(groupData[0].timestamp)}
+                                                                </div>
+                                                            </div>
+                                                        </CollapsibleTrigger>
+                                                        <CollapsibleContent>
+                                                            <div className="border-t">
+                                                                <div className="overflow-x-auto">
+                                                                    <LogTable
+                                                                        headers={headers}
+                                                                        data={groupData}
+                                                                        sortConfig={sortConfig}
+                                                                        onSort={handleSort}
+                                                                        formatDate={formatDate}
+                                                                        currentPage={currentPage}
+                                                                        setCurrentPage={setCurrentPage}
+                                                                        itemsPerPage={ITEMS_PER_PAGE}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </CollapsibleContent>
+                                                    </div>
+                                                </Collapsible>
+                                            ))
                                         ) : (
                                             <div className="rounded-lg border shadow-sm overflow-hidden">
                                                 <LogTable
