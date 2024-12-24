@@ -1,6 +1,6 @@
-import LogViewer from "@/LogViewer.jsx"
 import {ThemeProvider} from "@/components/theme-provider"
 import ThemeToggle from "@/components/theme-toggle.jsx";
+import LogViewer from "@/components/LogViewer/LogViewer.jsx";
 
 function App() {
     return (
