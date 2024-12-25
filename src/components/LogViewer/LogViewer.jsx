@@ -118,6 +118,7 @@ const LogViewer = () => {
                     description: error.message,
                     variant: "destructive", // Optional styling variant for errors
                 });
+                console.error(error);
 
                 setHeaders(null);
             }
@@ -165,6 +166,8 @@ const LogViewer = () => {
                 setSortedData(data);
                 return {all: data};
             } catch (error) {
+
+                console.error(error);
                 return {all: []};
             }
 
