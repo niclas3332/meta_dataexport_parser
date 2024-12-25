@@ -175,7 +175,7 @@ const LogViewer = () => {
 
         getSortedAndGroupedData();
 
-    }, [selectedCategory, groupBy, sortConfig])
+    }, [selectedCategory, groupBy, sortConfig, filters])
 
 
     return (
