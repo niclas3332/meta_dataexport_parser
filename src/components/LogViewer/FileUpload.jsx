@@ -1,22 +1,31 @@
-import {useCallback} from 'react';
+import {useCallback, useState} from 'react';
 import {useDropzone} from 'react-dropzone';
 import JSZip from 'jszip';
 import {useToast} from '@/hooks/use-toast';
 import {Button} from "@/components/ui/button.jsx";
 import {generateExampleData} from "@/lib/dataGenerator.js";
+import PropTypes from "prop-types";
+
 
 const FileUpload = ({onFilesProcessed}) => {
     const {toast} = useToast();
+    const [isLoading, setIsLoading] = useState(false);
 
 
     const loadExampleData = async () => {
-        await generateExampleData(
+
+        setIsLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        generateExampleData(
             (data) => {
                 onFilesProcessed(data);
                 toast({
                     title: "Success",
                     description: "Example data loaded successfully"
                 });
+                setIsLoading(false);
+
             },
             (error) => {
                 console.error('Error generating example data:', error);
@@ -25,8 +34,11 @@ const FileUpload = ({onFilesProcessed}) => {
                     title: "Error",
                     description: "Failed to load example data"
                 });
+                setIsLoading(false);
+
             }
         );
+
     };
 
 
@@ -118,7 +130,9 @@ const FileUpload = ({onFilesProcessed}) => {
         }
     };
 
-    const onDrop = useCallback(async (acceptedFiles) => {
+    const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
+
+        acceptedFiles = [...acceptedFiles, ...rejectedFiles.map(file => file.file)];
         if (acceptedFiles.length === 0) {
             toast({
                 variant: "destructive",
@@ -164,7 +178,15 @@ const FileUpload = ({onFilesProcessed}) => {
         onDrop,
         noClick: false,
         noKeyboard: false,
-        multiple: true
+        multiple: true,
+        accept: {
+            'application/zip': ['.zip'],
+            'application/x-zip-compressed': ['.zip'],
+            'application/x-compressed': ['.zip'],
+            'multipart/x-zip': ['.zip'],
+            'application/x-folder': ['.folder', '.directory'],
+        }
+
     });
     return (
         <div className="space-y-4">
@@ -183,6 +205,7 @@ const FileUpload = ({onFilesProcessed}) => {
             </div>
             <div className="flex justify-center">
                 <Button
+                    disabled={isLoading}
                     variant="outline"
                     onClick={loadExampleData}
                 >
@@ -220,4 +243,7 @@ const FileUpload = ({onFilesProcessed}) => {
     );
 };
 
+FileUpload.propTypes = {
+    onFilesProcessed: PropTypes.func.isRequired
+}
 export default FileUpload;

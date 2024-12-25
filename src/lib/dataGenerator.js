@@ -3,8 +3,10 @@ import { faker } from '@faker-js/faker';
 import JSZip from 'jszip';
 import { folderConfigs } from './folderConfigs';
 
-export const generateExampleData = async (onSuccess, onError) => {
+export const generateExampleData =  (onSuccess, onError) => {
     try {
+
+
         const zip = new JSZip();
         const rootFolder = zip.folder("download_data_logs");
         const contentFolder = rootFolder.folder("content");
