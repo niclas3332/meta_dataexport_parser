@@ -1,10 +1,34 @@
-import { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import {useCallback} from 'react';
+import {useDropzone} from 'react-dropzone';
 import JSZip from 'jszip';
-import { useToast } from '@/hooks/use-toast';
+import {useToast} from '@/hooks/use-toast';
+import {Button} from "@/components/ui/button.jsx";
+import {generateExampleData} from "@/lib/dataGenerator.js";
 
-const FileUpload = ({ onFilesProcessed }) => {
-    const { toast } = useToast();
+const FileUpload = ({onFilesProcessed}) => {
+    const {toast} = useToast();
+
+
+    const loadExampleData = async () => {
+        await generateExampleData(
+            (data) => {
+                onFilesProcessed(data);
+                toast({
+                    title: "Success",
+                    description: "Example data loaded successfully"
+                });
+            },
+            (error) => {
+                console.error('Error generating example data:', error);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to load example data"
+                });
+            }
+        );
+    };
+
 
     const processZip = async (zipFile) => {
         try {
@@ -136,15 +160,14 @@ const FileUpload = ({ onFilesProcessed }) => {
         }
     }, [onFilesProcessed, toast]);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    const {getRootProps, getInputProps, isDragActive} = useDropzone({
         onDrop,
         noClick: false,
         noKeyboard: false,
         multiple: true
     });
-
     return (
-        <div>
+        <div className="space-y-4">
             <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer ${
@@ -158,7 +181,15 @@ const FileUpload = ({ onFilesProcessed }) => {
                         : 'Drag and drop the download_data_logs folder or ZIP file here, or click to select'}
                 </p>
             </div>
-            <div className="mt-4 text-center space-y-2">
+            <div className="flex justify-center">
+                <Button
+                    variant="outline"
+                    onClick={loadExampleData}
+                >
+                    View Example Data
+                </Button>
+            </div>
+            <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">
                     Your files are processed entirely in your browser - nothing will be uploaded to any server.
                 </p>
