@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {useState, useEffect} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Loader2} from 'lucide-react';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import CategoryList from './CategoryList';
 import FilterBar from './FilterBar';
 import LogTable from './LogTable';
@@ -10,7 +10,7 @@ import useSorting from '@/hooks/useSorting';
 import useFiltering from '@/hooks/useFiltering';
 import usePagination from '@/hooks/usePagination';
 import FileUpload from '@/components/LogViewer/FileUpload.jsx';
-import { Badge } from '@/components/ui/badge';
+import {Badge} from '@/components/ui/badge';
 import _ from 'lodash';
 
 const LogViewer = () => {
@@ -20,9 +20,9 @@ const LogViewer = () => {
     const [loading, setLoading] = useState(false);
     const [expandedGroups, setExpandedGroups] = useState(new Set());
     const [groupBy, setGroupBy] = useState(null);
-    const { sortConfig, handleSort } = useSorting();
-    const { filters, handleFilterChange, addFilter, removeFilter, filterData } = useFiltering();
-    const { currentPage, setCurrentPage, getPaginatedData } = usePagination();
+    const {sortConfig, handleSort} = useSorting();
+    const {filters, handleFilterChange, addFilter, removeFilter, filterData} = useFiltering();
+    const {currentPage, setCurrentPage, getPaginatedData} = usePagination();
 
     useEffect(() => {
         setCurrentPage(1);
@@ -43,7 +43,6 @@ const LogViewer = () => {
     const loadPages = async (categoryId) => {
         setLoading(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 0)); // Async break
             const category = categories.find(c => c.id === categoryId);
             if (category) {
                 setSelectedCategory(category);
@@ -64,14 +63,14 @@ const LogViewer = () => {
                 entry.label_values.forEach(item => labelSet.add(item.label))
             )
         );
-        return Array.from(labelSet).map(label => ({ label: label === 'timestamp' ? 'Timestamp' : label, key: label }));
+        return Array.from(labelSet).map(label => ({label: label === 'timestamp' ? 'Timestamp' : label, key: label}));
     };
 
     const getSortedAndGroupedData = () => {
-        if (!selectedCategory) return { all: [] };
+        if (!selectedCategory) return {all: []};
         const pages = categorizedData[selectedCategory.id]?.pages || [];
         let data = pages.flatMap(page => page.map(entry => {
-            const row = { timestamp: entry.timestamp };
+            const row = {timestamp: entry.timestamp};
             entry.label_values.forEach(item => row[item.label] = item.value);
             return row;
         }));
@@ -98,29 +97,32 @@ const LogViewer = () => {
             data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
         }
 
-        return { all: data };
+        return {all: data};
     };
 
     const headers = getTableHeaders();
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
-            {categories.length > 0 && (
-                <div className="w-full lg:w-1/4">
+            <div className="w-full lg:w-1/4">
+
+                {categories.length > 0 && (
                     <CategoryList
                         categories={categories}
                         selectedCategory={selectedCategory}
                         onCategorySelect={loadPages}
                     />
-                </div>
-            )}
+                )}
+            </div>
+
 
             <div className="w-full lg:w-3/4 space-y-6">
                 {selectedCategory ? (
                     <div className="space-y-6">
                         <Card className="shadow-sm">
                             <CardHeader>
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+                                <div
+                                    className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
                                     <div>
                                         <CardTitle className="text-xl text-primary">
                                             {selectedCategory.name}
@@ -136,7 +138,7 @@ const LogViewer = () => {
                                     </div>
                                     <Select value={groupBy} onValueChange={setGroupBy}>
                                         <SelectTrigger className="w-full md:w-[240px]">
-                                            <SelectValue placeholder="Group by field..." />
+                                            <SelectValue placeholder="Group by field..."/>
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value={null}>No grouping</SelectItem>
@@ -170,7 +172,7 @@ const LogViewer = () => {
                             <CardContent>
                                 {loading ? (
                                     <div className="flex items-center justify-center p-12">
-                                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
                                     </div>
                                 ) : (
                                     groupBy ? (
@@ -218,7 +220,7 @@ const LogViewer = () => {
                             <CardTitle>Upload Log Files</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <FileUpload onFilesProcessed={handleFilesProcessed} />
+                            <FileUpload onFilesProcessed={handleFilesProcessed}/>
                         </CardContent>
                     </Card>
                 )}

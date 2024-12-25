@@ -1,12 +1,13 @@
+// components/LogViewer/CategoryList.jsx
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const CategoryList = ({ categories, selectedCategory, onCategorySelect }) => (
-    <Card className="shadow-sm h-full">
+    <Card className="shadow-sm ">
         <CardHeader>
             <CardTitle>Categories</CardTitle>
         </CardHeader>
-        <ScrollArea className="h-[calc(100vh-16rem)] lg:h-[calc(100vh-12rem)]">
+        <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="p-4 space-y-3">
                 {categories.map((category) => (
                     <Card
