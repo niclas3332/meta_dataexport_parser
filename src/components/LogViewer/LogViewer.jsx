@@ -13,6 +13,7 @@ import FileUpload from '@/components/LogViewer/FileUpload.jsx';
 import {Badge} from '@/components/ui/badge';
 import _ from 'lodash';
 import classnames from 'classnames';
+import {useToast} from "@/hooks/use-toast"; // Pfad anpassen, falls anders
 
 const LogViewer = () => {
     const [categories, setCategories] = useState([]);
@@ -25,9 +26,15 @@ const LogViewer = () => {
     const {filters, handleFilterChange, addFilter, removeFilter, filterData} = useFiltering();
     const {currentPage, setCurrentPage, getPaginatedData} = usePagination();
 
+    const [headers, setHeaders] = useState([]);
+
+
     useEffect(() => {
         setCurrentPage(1);
     }, [filters, groupBy, sortConfig]);
+
+    const {toast} = useToast();
+
 
     const handleFilesProcessed = (data) => {
         const newCategories = Object.values(data).map(cat => ({
@@ -42,6 +49,7 @@ const LogViewer = () => {
     };
 
     const loadPages = async (categoryId) => {
+        console.log("loadPages")
         const timer = setTimeout(() => {
             setLoading(true);
         }, 200);
@@ -61,52 +69,102 @@ const LogViewer = () => {
         }
     };
 
-    const getTableHeaders = () => {
-        if (!categorizedData[selectedCategory?.id]?.pages) return [];
-        const labelSet = new Set(['timestamp']);
-        categorizedData[selectedCategory.id].pages.forEach(page =>
-            page.forEach(entry =>
-                entry.label_values.forEach(item => labelSet.add(item.label))
-            )
-        );
-        return Array.from(labelSet).map(label => ({label: label === 'timestamp' ? 'Timestamp' : label, key: label}));
-    };
+
+    useEffect(() => {
+
+        const getTableHeaders = () => {
+            if (!categorizedData[selectedCategory?.id]?.pages) return [];
+
+            try {
+
+
+                // Set to store unique labels
+                const labelSet = new Set(['timestamp']);
+
+                // Iterate over pages and entries
+                categorizedData[selectedCategory.id].pages.forEach(page => {
+                    if (!Array.isArray(page)) {
+                        throw new Error("Page is not a valid list of entries.");
+                    }
+                    page.forEach(entry => {
+                        if (!entry.label_values || !Array.isArray(entry.label_values)) {
+                            throw new Error("Entry does not have valid label_values.");
+                        }
+                        entry.label_values.forEach(item => {
+                            if (!item.label) {
+                                throw new Error("A label is missing in one of the label_value entries.");
+                            }
+                            labelSet.add(item.label);
+                        });
+                    });
+                });
+
+
+                setHeaders(Array.from(labelSet).map(label => ({
+                    label: label === 'timestamp' ? 'Timestamp' : label,
+                    key: label
+                })));
+                // Return an array of labels
+                return Array.from(labelSet).map(label => ({
+                    label: label === 'timestamp' ? 'Timestamp' : label,
+                    key: label
+                }));
+            } catch (error) {
+                // Show a toast notification
+                toast({
+                    title: "Error",
+                    description: error.message,
+                    variant: "destructive", // Optional styling variant for errors
+                });
+
+                setHeaders(null);
+            }
+        };
+
+        getTableHeaders();
+
+    }, [ selectedCategory])
+
 
     const getSortedAndGroupedData = () => {
+        console.log("getSortedAndGroupedData")
         if (!selectedCategory) return {all: []};
-        const pages = categorizedData[selectedCategory.id]?.pages || [];
-        let data = pages.flatMap(page => page.map(entry => {
-            const row = {timestamp: entry.timestamp};
-            entry.label_values.forEach(item => row[item.label] = item.value);
-            return row;
-        }));
+        try {
+            const pages = categorizedData[selectedCategory.id]?.pages || [];
+            let data = pages.flatMap(page => page.map(entry => {
+                const row = {timestamp: entry.timestamp};
+                entry.label_values.forEach(item => row[item.label] = item.value);
+                return row;
+            }));
 
-        data = filterData(data);
+            data = filterData(data);
 
-        if (groupBy) {
-            const grouped = groupBy === 'timestamp'
-                ? _.groupBy(data, row => new Date(row.timestamp * 1000).toLocaleString())
-                : _.groupBy(data, groupBy);
+            if (groupBy) {
+                const grouped = groupBy === 'timestamp'
+                    ? _.groupBy(data, row => new Date(row.timestamp * 1000).toLocaleString())
+                    : _.groupBy(data, groupBy);
 
-            // Sort only within groups
-            const sortedGrouped = _.mapValues(grouped, group => {
-                if (sortConfig.key) {
-                    return _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
-                }
-                return group;
-            });
+                // Sort only within groups
+                const sortedGrouped = _.mapValues(grouped, group => {
+                    if (sortConfig.key) {
+                        return _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
+                    }
+                    return group;
+                });
 
-            return sortedGrouped;
+                return sortedGrouped;
+            }
+
+            if (sortConfig.key) {
+                data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
+            }
+            return {all: data};
+        } catch (error) {
+            return {all: []};
         }
 
-        if (sortConfig.key) {
-            data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
-        }
-
-        return {all: data};
     };
 
-    const headers = getTableHeaders();
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6">
@@ -125,7 +183,7 @@ const LogViewer = () => {
 
 
             <div className={classnames("w-full  space-y-6 ", {"lg:w-3/4": categories.length > 0})}>
-                {selectedCategory ? (
+                {selectedCategory && headers ? (
                     <div className="space-y-6  w-full">
                         <Card className="shadow-sm">
                             <CardHeader>
