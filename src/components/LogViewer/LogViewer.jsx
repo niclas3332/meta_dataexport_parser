@@ -41,8 +41,12 @@ const LogViewer = () => {
     };
 
     const loadPages = async (categoryId) => {
-        setLoading(true);
+        const timer = setTimeout(() => {
+            setLoading(true);
+        }, 200);
         try {
+
+            await new Promise(resolve => setTimeout(resolve, 0)); // Async break
             const category = categories.find(c => c.id === categoryId);
             if (category) {
                 setSelectedCategory(category);
@@ -51,6 +55,7 @@ const LogViewer = () => {
                 setCurrentPage(1);
             }
         } finally {
+            clearTimeout(timer);
             setLoading(false);
         }
     };
@@ -104,7 +109,7 @@ const LogViewer = () => {
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
-            <div className="w-full lg:w-1/4">
+            <div className="w-full lg:w-1/4 shrink-0">
 
                 {categories.length > 0 && (
                     <CategoryList
@@ -116,9 +121,9 @@ const LogViewer = () => {
             </div>
 
 
-            <div className="w-full lg:w-3/4 space-y-6">
+            <div className="w-full lg:w-3/4 space-y-6 ">
                 {selectedCategory ? (
-                    <div className="space-y-6">
+                    <div className="space-y-6  w-full">
                         <Card className="shadow-sm">
                             <CardHeader>
                                 <div
@@ -171,8 +176,9 @@ const LogViewer = () => {
 
                             <CardContent>
                                 {loading ? (
-                                    <div className="flex items-center justify-center p-12">
-                                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <Loader2 className="animate-spin text-muted-foreground" size={32} />
+
                                     </div>
                                 ) : (
                                     groupBy ? (
@@ -197,7 +203,7 @@ const LogViewer = () => {
                                             }}
                                         />
                                     ) : (
-                                        <div className="rounded-lg border shadow-sm overflow-hidden">
+                                        <div className="rounded-lg border shadow-sm">
                                             <LogTable
                                                 headers={headers}
                                                 data={getSortedAndGroupedData().all}
@@ -215,7 +221,7 @@ const LogViewer = () => {
                         </Card>
                     </div>
                 ) : (
-                    <Card className="shadow-sm">
+                    <Card className="shadow-sm w-full">
                         <CardHeader>
                             <CardTitle>Upload Log Files</CardTitle>
                         </CardHeader>
