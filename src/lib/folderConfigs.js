@@ -3,16 +3,7 @@ import { faker } from '@faker-js/faker';
 
 export const folderConfigs = {
     baseLabels: [
-        {
-            label: "Date",
-            getValue: () => faker.date.past().toISOString().split('T')[0],
-            description: "Date of the event"
-        },
-        {
-            label: "Time",
-            getValue: () => faker.date.past().toLocaleString(),
-            description: "Time of the event"
-        },
+
         {
             label: "User ID",
             getValue: () => faker.string.uuid(),
