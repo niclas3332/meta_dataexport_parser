@@ -12,6 +12,7 @@ import usePagination from '@/hooks/usePagination';
 import FileUpload from '@/components/LogViewer/FileUpload.jsx';
 import {Badge} from '@/components/ui/badge';
 import _ from 'lodash';
+import classnames from 'classnames';
 
 const LogViewer = () => {
     const [categories, setCategories] = useState([]);
@@ -109,19 +110,21 @@ const LogViewer = () => {
 
     return (
         <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
-            <div className="w-full lg:w-1/4 shrink-0">
 
-                {categories.length > 0 && (
+
+            {categories.length > 0 && (
+                <div className="w-full lg:w-1/4 shrink-0">
                     <CategoryList
                         categories={categories}
                         selectedCategory={selectedCategory}
                         onCategorySelect={loadPages}
                     />
-                )}
-            </div>
+                </div>
+
+            )}
 
 
-            <div className="w-full lg:w-3/4 space-y-6 ">
+            <div className={classnames("w-full  space-y-6 ", {"lg:w-3/4": categories.length > 0})}>
                 {selectedCategory ? (
                     <div className="space-y-6  w-full">
                         <Card className="shadow-sm">
@@ -177,7 +180,7 @@ const LogViewer = () => {
                             <CardContent>
                                 {loading ? (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <Loader2 className="animate-spin text-muted-foreground" size={32} />
+                                        <Loader2 className="animate-spin text-muted-foreground" size={32}/>
 
                                     </div>
                                 ) : (
