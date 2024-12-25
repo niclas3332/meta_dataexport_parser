@@ -71,7 +71,7 @@ export const folderConfigs = {
         },
         {
             label: "IP Address",
-            getValue: () => faker.internet.ip(),
+            getValue: () => [Math.floor(Math.random() * 256 + 1), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 45 + 256)].join('.'),
             description: "IP address of the activity"
         },
         {
