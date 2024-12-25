@@ -109,7 +109,7 @@ const LogViewer = () => {
     const headers = getTableHeaders();
 
     return (
-        <div className="p-6 flex flex-col lg:flex-row gap-6 h-screen">
+        <div className="p-6 flex flex-col lg:flex-row gap-6">
 
 
             {categories.length > 0 && (
