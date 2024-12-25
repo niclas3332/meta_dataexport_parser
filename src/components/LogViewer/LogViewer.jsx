@@ -24,10 +24,12 @@ const LogViewer = () => {
     const [groupBy, setGroupBy] = useState(null);
     const {sortConfig, handleSort} = useSorting();
     const {filters, handleFilterChange, addFilter, removeFilter, filterData} = useFiltering();
-    const {currentPage, setCurrentPage, getPaginatedData} = usePagination();
+    const {currentPage, setCurrentPage} = usePagination();
 
     const [headers, setHeaders] = useState([]);
 
+    const [sortedData, setSortedData] = useState([])
+    const [groupedData, setGroupedData] = useState([])
 
     useEffect(() => {
         setCurrentPage(1);
@@ -123,47 +125,54 @@ const LogViewer = () => {
 
         getTableHeaders();
 
-    }, [ selectedCategory])
+    }, [selectedCategory])
 
 
-    const getSortedAndGroupedData = () => {
-        console.log("getSortedAndGroupedData")
-        if (!selectedCategory) return {all: []};
-        try {
-            const pages = categorizedData[selectedCategory.id]?.pages || [];
-            let data = pages.flatMap(page => page.map(entry => {
-                const row = {timestamp: entry.timestamp};
-                entry.label_values.forEach(item => row[item.label] = item.value);
-                return row;
-            }));
+    useEffect(() => {
+        const getSortedAndGroupedData = () => {
+            console.log("getSortedAndGroupedData")
+            if (!selectedCategory) return {all: []};
+            try {
+                const pages = categorizedData[selectedCategory.id]?.pages || [];
+                let data = pages.flatMap(page => page.map(entry => {
+                    const row = {timestamp: entry.timestamp};
+                    entry.label_values.forEach(item => row[item.label] = item.value);
+                    return row;
+                }));
 
-            data = filterData(data);
+                data = filterData(data);
 
-            if (groupBy) {
-                const grouped = groupBy === 'timestamp'
-                    ? _.groupBy(data, row => new Date(row.timestamp * 1000).toLocaleString())
-                    : _.groupBy(data, groupBy);
+                if (groupBy) {
+                    const grouped = groupBy === 'timestamp'
+                        ? _.groupBy(data, row => new Date(row.timestamp * 1000).toLocaleString())
+                        : _.groupBy(data, groupBy);
 
-                // Sort only within groups
-                const sortedGrouped = _.mapValues(grouped, group => {
-                    if (sortConfig.key) {
-                        return _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
-                    }
-                    return group;
-                });
+                    // Sort only within groups
+                    const sortedGrouped = _.mapValues(grouped, group => {
+                        if (sortConfig.key) {
+                            return _.orderBy(group, [sortConfig.key], [sortConfig.direction]);
+                        }
+                        return group;
+                    });
 
-                return sortedGrouped;
+                    setGroupedData(sortedGrouped)
+                    return sortedGrouped;
+                }
+
+                if (sortConfig.key) {
+                    data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
+                }
+                setSortedData(data);
+                return {all: data};
+            } catch (error) {
+                return {all: []};
             }
 
-            if (sortConfig.key) {
-                data = _.orderBy(data, [sortConfig.key], [sortConfig.direction]);
-            }
-            return {all: data};
-        } catch (error) {
-            return {all: []};
-        }
+        };
 
-    };
+        getSortedAndGroupedData();
+
+    }, [selectedCategory, groupBy, sortConfig])
 
 
     return (
@@ -245,7 +254,7 @@ const LogViewer = () => {
                                     groupBy ? (
                                         <GroupedContent
                                             headers={headers}
-                                            groupedData={getSortedAndGroupedData()}
+                                            groupedData={groupedData}
                                             sortConfig={sortConfig}
                                             handleSort={handleSort}
                                             formatDate={timestamp => new Date(timestamp * 1000).toLocaleString()}
@@ -267,7 +276,7 @@ const LogViewer = () => {
                                         <div className="rounded-lg border shadow-sm">
                                             <LogTable
                                                 headers={headers}
-                                                data={getSortedAndGroupedData().all}
+                                                data={sortedData}
                                                 sortConfig={sortConfig}
                                                 onSort={handleSort}
                                                 formatDate={timestamp => new Date(timestamp * 1000).toLocaleString()}
